@@ -107,6 +107,7 @@ export default {
         _this.subNavs.push({
           label: sub.label,
           id: sub.id || index,
+          hasChild: sub.extend || false,
         });
         if (!sub.id) sub.id = index;
         // if (index === 0) {
@@ -119,6 +120,7 @@ export default {
       this.subNavs.push({
         label: `Reset ${this.label}`,
         id: this.subNavs.length + 1,
+        hasChild: false,
       });
       this.updateSubStatus();
     },
