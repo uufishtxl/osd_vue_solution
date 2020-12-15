@@ -13,7 +13,19 @@ const store = new Vuex.Store({
         active_level: 0,
         nav_active: 1,
         inp: 1,
-        clr_active: 1
+        clr_active: 1,
+        cur_vals: {
+            brightness: 75,
+            contrast: 75,
+            auto_select: 'On',
+            rename_inputs: 'DP',
+            preset_modes: 'Standard',
+            input_color_format: 'RGB',
+            hue: 50,
+            saturation: 50,
+            dp: 'Off',
+            hdmi: 'Off'
+        }
     },
     mutations: {
         updateNav(state, payload) {
@@ -62,6 +74,12 @@ const store = new Vuex.Store({
                 default: 
                     break;
             }
+        },
+        updateLevel(state, payload) {
+            state.active_level = payload;
+        },
+        updateVal(state, payload) {
+            state.cur_vals[payload.label] = payload.val;
         }
     },
     getters: {

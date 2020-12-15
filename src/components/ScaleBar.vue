@@ -7,7 +7,7 @@
             <div class="progress" :style="getScaleStyle"></div>
         </div>
         <div class="bar-val" :style="getColor">
-            <h3>{{ value }} {{ unit }}</h3>
+            <h3>{{ cur_val }} {{ unit }}</h3>
         </div>
     </div>
 </template>
@@ -15,12 +15,13 @@
 <script>
 export default {
     name: 'ScaleBar',
-    props: ["qid","label", "min", "max", "value", "unit", "icon", "activeLevel", "slevel", "sclicked"],
+    props: ["qid","label", "min", "max", "unit", "icon", "slevel", "sclicked", "hasChild"],
     data() {
         return {
-            currentValue: this.value,
             show: true,
-            id: this.qid
+            id: this.qid,
+            extend: this.hasChild,
+            activeLevel: this.active_level
         }
     },
     computed: {
@@ -30,33 +31,32 @@ export default {
             }
         },
         getScaleStyle: function() {
+            console.log(`cur is ${this.cur_val}, max is ${this.max}, min is ${this.min}`);
             return {
                 background: this.activeLevel == this.slevel ?  '#3399ff' : '#ccc',
-                height: 100 * Number(this.currentValue) / (Number(this.max) - Number(this.min)) + '%'
+                height: 100 * Number(this.cur_val) / (Number(this.max) - Number(this.min)) + '%'
             }
+        },
+        cur_val:function() {
+            var vals = this.$store.state.cur_vals;
+            return vals[this.formatTxt(this.label)];
+        },
+        active_level() {
+            return this.$store.state.active_level;
         }
     },
     methods: {
+        formatTxt: function(txt) {
+            var str = txt.replace(/\W/g, '_');
+            str = str.toLowerCase();
+            if (str.substr(str.length - 1, 1) == '_') {
+                str = str.slice(0, str.length - 1);
+            }
+            return str;
+        },
         updateSubNav() {
             if (this.$store.state.nav_active != 1) {
                 this.$parent.updateSubNav();
-            }
-        },
-        up() {
-            if (this.show && Number(this.activeLevel) == Number(this.slevel)) {
-                
-                if (this.currentValue < this.max) {
-                    this.currentValue += 1;
-                }
-            }
-        },
-        down() {
-            console.log(`show? ${this.show}, activeLevel, ${this.activeLevel}, slevel is, ${this.slevel}`);
-            console.log(`${this.currentValue}, min is, ${this.min}`)
-            if (this.show && Number(this.activeLevel) == Number(this.slevel)) {
-                if (this.currentValue > this.min) {
-                    this.currentValue -= 1;
-                }
             }
         }
     },
@@ -64,20 +64,8 @@ export default {
         label() {
            this.updateSubNav(); 
         },
-        value: function(val) {
-            this.currentValue = val;
-        },
-        currentValue: function(val) {
-            this.$emit('input', val);
-        },
-        sclicked: function() {
-            console.log(`down is ${this.$store.state.down}`);
-            if (this.$store.state.up) {
-               this.up(); 
-            } else if (this.$store.state.down) {
-                console.log('getdown')
-               this.down(); 
-            }
+        active_level(val) {
+            this.activeLevel = val;
         }
     },
     mounted() {

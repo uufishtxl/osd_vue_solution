@@ -9,23 +9,23 @@
             </div>
         </div>
         <div class="navs-content">
-            <NavContent icon="<i class='fas fa-sun'></i>" label="Brightness/Contrast" id="1" :activeLevel="activeLevel">
-                <ScaleBar :sclicked="mclicked" slot="subleft" v-model="brightV" label="Brightness" min="0" max="100" unit="%" icon="<i class='fas fa-sun'></i>" :activeLevel="activeLevel" slevel="2" />
-                <ScaleBar :sclicked="mclicked" v-model="contrastV" label="Contrast" min="0" max="100" unit="%" icon="<i class='fas fa-adjust'></i>" :activeLevel="activeLevel" slevel="3" />
+            <NavContent :nclicked="mclicked" icon="<i class='fas fa-sun'></i>" label="Brightness/Contrast" id="1" >
+                <ScaleBar slot="subleft" label="Brightness" min="0" max="100" unit="%" icon="<i class='fas fa-sun'></i>"  slevel="2" />
+                <ScaleBar label="Contrast" min="0" max="100" unit="%" icon="<i class='fas fa-adjust'></i>"  slevel="3" />
             </NavContent>
-            <NavContent :nclicked="mclicked" :haspre="true" icon="<i class='fas fa-paperclip'></i>" label="Input Source" id="2" :activeLevel="activeLevel" :simpSels="inputSSels">
-                <SelList :sclicked="mclicked" v-model="auto_select_def" :options="auto_select_o" label="Auto Select" id="3" :activeLevel="activeLevel"/>
-                <SelList :sclicked="mclicked" v-model="rename_inputs_def" :options="rename_inputs_o" label="Rename Inputs" id="4" :activeLevel="activeLevel" slevel="3">
+            <NavContent :nclicked="mclicked" :haspre="true" icon="<i class='fas fa-paperclip'></i>" label="Input Source" id="2"  :simpSels="inputSSels">
+                <SelList :hasChild="false" :options="auto_select_o" label="Auto Select" id="3" />
+                <SelList :hasChild="true" :options="rename_inputs_o" label="Rename Inputs" id="4" slevel="3">
                     <!-- Rename Inputs 的值是label -->
-                    <SelListQuad v-model="dp_def" :options="dp_o" label="DP" id="1" :activeLevel="activeLevel" slevel="4"/>
-                    <SelListQuad v-model="hdmi_def" :options="hdmi_o" label="HDMI" id="2" :activeLevel="activeLevel" slevel="4"/>
+                    <SelListQuad :options="dp_o" label="DP" id="1" slevel="4"/>
+                    <SelListQuad :options="hdmi_o" label="HDMI" id="2" slevel="4"/>
                 </SelList>
             </NavContent>
-            <NavContent :nclicked="mclicked" :haspre="false" v-model="clrActive" icon="<i class='fas fa-palette'></i>" label="Color" id="3" :activeLevel="activeLevel" >
-                <SelList v-model="preset_modes_def" :options="preset_modes_o" label="Preset Modes" id="1" :activeLevel="activeLevel"/>
-                <SelList v-model="input_color_format_def" :options="input_color_format_o" label="Input Color Format" id="2" :activeLevel="activeLevel"/>
-                <ScaleBar v-model="hue_def" label="Hue" min="0" max="100" unit="%" :activeLevel="activeLevel" qid="3" slevel="3" />
-                <ScaleBar v-model="saturation_def" label="Saturation" min="0" max="100" unit="%" :activeLevel="activeLevel" qid="4" slevel="3" />
+            <NavContent :nclicked="mclicked" :haspre="false" icon="<i class='fas fa-palette'></i>" label="Color" id="3"  >
+                <SelList :hasChild="false" :options="preset_modes_o" label="Preset Modes" id="1" />
+                <SelList :hasChild="false" :options="input_color_format_o" label="Input Color Format" id="2" />
+                <ScaleBar :hasChild="false"  label="Hue" min="0" max="100" unit="%"  qid="3" slevel="3" />
+                <ScaleBar :hasChild="false"  label="Saturation" min="0" max="100" unit="%" qid="4" slevel="3" />
             </NavContent>
             <NavContent icon="<i class='fas fa-tv'></i>" label="Display" id="4" />
             <NavContent icon="<i class='fas fa-columns'></i>" label="PIP/PBP" id="5" />
@@ -50,20 +50,23 @@ export default {
         SelList,
         SelListQuad
     },
-    props: ['activeLevel', 'clrActive', "mclicked"],
+    props: ['clrActive', "mclicked"],
     data() {
         return {
+            activeLevel: this.active_level,
             navs: [],
             brightV: 75,
             contrastV: 75,
             inputSSels: [
                             {
                                 label: 'DP',
-                                id: 1
+                                id: 1,
+                                hasChild: false
                             },
                             {
                                 label: 'HDMI',
-                                id: 2
+                                id: 2,
+                                hasChild: false
                             }
                         ],
             auto_select_o: [
@@ -80,11 +83,13 @@ export default {
             rename_inputs_o: [
                 {
                     label: "DP",
-                    isDef: true
+                    isDef: true,
+                    hasChild: true
                 },
                 {
                     label: "HDMI",
-                    isDef: false
+                    isDef: false,
+                    hasChild: true
                 }
             ],
             rename_inputs_def: 'DP',
@@ -137,6 +142,9 @@ export default {
     computed: {
         currentValue() {
             return this.$store.state.nav_active;
+        },
+        active_level() {
+            return this.$store.state.active_level;
         }
     },
     methods: {
@@ -193,9 +201,9 @@ export default {
             var arr_f = [];
             arr.forEach(function(item){
                 arr_f.push({
-                    opname: _this.formatTxt(item.label) + '_def',
+                    opname: _this.formatTxt(item.label),
                     id: item.id,
-                    val: ["DP", "HDMI"].indexOf(item.label) != -1 ? '' : (_this[_this.formatTxt(item.label) + '_def'] || '')
+                    val: ["DP", "HDMI"].indexOf(item.label) != -1 ? '' : _this.$store.state.cur_vals[_this.formatTxt(item.label)]
                 })
             })
             console.log(arr_f);
@@ -206,6 +214,9 @@ export default {
     watch: {
         currentValue: function() {
             this.updateStatus();
+        },
+        active_level: function(val) {
+            this.activeLevel = val;
         }
     }
 }

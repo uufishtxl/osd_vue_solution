@@ -1,11 +1,10 @@
 <template>
     <div v-show="showHide">
         <div class="sel list-item">
-            <div :key="item.id" v-for="(item) in options" >
-                <div class="grid">
+            <div :key="index" v-for="(item, index) in options" >
+                <div class="grid2" :class="{'item-active': index === focus}">
                     <div :class="tickCls(item)"><i class="fas fa-check"></i></div>
-                    <div class="column-2"><input v-model="pickup" :name="getName" type="radio" :id="label + item.id" :value="item.label"></div>
-                    <div class="column-3">{{ item.label }}</div>
+                    <div class="column2">{{ item.label }}</div>
                 </div>
                 
             </div>   
@@ -19,11 +18,12 @@
 <script>
 export default {
     name: "SelListQuad",
-    props: ["options", "label", "id", "value", "activeLevel", "slevel"],
+    props: ["options", "label", "id", "slevel"],
     data() {
         return {
-            pickup: this.value,
-            show: true
+            show: true,
+            activeLevel: this.active_level,
+            focus: this.cur
         }
     },
     computed: {
@@ -32,15 +32,44 @@ export default {
         },
         showHide: function() {
             return this.show && this.activeLevel == 4
+        },
+        active_level() {
+            return this.$store.state.active_level;
+        },
+        val: function() {
+            return this.$store.state.cur_vals[this.formatTxt(this.label)];
+        },
+        cur: {
+            get: function() {
+                var cur_val = this.$store.state.cur_vals[this.formatTxt(this.label)];
+                var cur;
+                for (var i = 0; i < this.options.length; i++) {
+                    if (cur_val == this.options[i].label) {
+                        cur = i;
+                    }
+                }
+                return cur;
+            },
+            set: function(val) {
+                this.focus = val;
+            }
         }
     }
     ,
     methods: {
+        formatTxt: function(txt) {
+            var str = txt.replace(/\W/g, '_');
+            str = str.toLowerCase();
+            if (str.substr(str.length - 1, 1) == '_') {
+                str = str.slice(0, str.length - 1);
+            }
+            return str;
+        },
         tickCls: function(item) {
             return [
                 'tick',
                 {
-                    'show-it': item.label == this.value
+                    'show-it': item.label === this.val
                 }
             ]
         },
@@ -51,10 +80,15 @@ export default {
     watch: {
         label: function() {
             this.$parent.updateQuadStatus();
+        },
+        active_level: function(val) {
+            this.activeLevel = val;
         }
     },
     mounted() {
         this.updateQuadStatus();
+        this.focus = this.cur;
+        this.activeLevel = this.active_level;
     }
 }
 </script>
@@ -63,19 +97,6 @@ export default {
 
 .sel {
     padding-left: 20px;    
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 15px 30px auto;
-}
-
-.column-2 {
-    grid-column: 2 / 3;
-}
-
-.column-3 {
-    grid-column: 3 / 4;
 }
 
 input[type=radio] {

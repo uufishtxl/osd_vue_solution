@@ -9,7 +9,7 @@
     </div>
     <div class="monitor">
       <div class="desktop"></div>
-      <Menu :clicked="clicked" v-show="activeLevel >= 1 && activeLevel <= 4" :activeLevel="activeLevel" :clrActive="clrActive" />
+      <Menu :clicked="clicked" v-show="activeLevel >= 1 && activeLevel <= 4" :clrActive="clrActive" />
       <Btns v-show="activeLevel >= 1" :active="false"/>
     </div>
     <Btns :active="true"/>
@@ -37,8 +37,6 @@ export default {
     return {
       connectors: ["DP", "HDMI", "I/O"],
       helpS: true,
-      // Active Level
-      activeLevel: 0,
       // Left Active Seq
       activeNav: this.$store.state.nav_active,
       // Middle Active Seqs
@@ -49,10 +47,11 @@ export default {
       PerActive:1,
       OthActive:1,
       navQty: 8,
-      timer_def: 30,
+      timer_def: 3000,
       prevLevel: 0,
       clicked: true,
-      timer: setTimeout(function() {}, 10000000000)
+      timer: setTimeout(function() {}, 10000000000),
+      activeLevel: this.$store.state.active_level
     }
   },
   methods: {
@@ -62,9 +61,10 @@ export default {
       }
       if (this.activeLevel > 1 && this.$store.state.nav_active == 1) {
         this.activeLevel = 1;
-      } else {
-        this.activeLevel+=1;
+      } else if (this.activeLevel < 3) {
+        this.activeLevel += 1;
       }
+      this.clicked = !this.clicked;
       this.$store.commit('setActiveBtn', 'o');
       this.countDown();
     },
@@ -85,6 +85,7 @@ export default {
       if (this.activeLevel < 4) {
         this.activeLevel += 1;
       }
+      this.clicked = !this.clicked;
       this.$store.commit('setActiveBtn', 'r')
       this.countDown();
     },
@@ -133,6 +134,11 @@ export default {
       cur = (cur + 1 + len) % len;
       cur = cur == 0 ? len : cur;
       return cur;
+    }
+  },
+  watch: {
+    activeLevel: function(val) {
+      this.$store.commit('updateLevel', val);
     }
   }
 }
@@ -383,6 +389,17 @@ export default {
   bottom: 130px;
   right: 15px;
   padding: 0;
+}
+
+/* Monitor > SelList */
+
+.grid2 {
+    display: grid;
+    grid-template-columns: 20px auto;
+}
+
+.column2 {
+    grid-column: 2 / 3;
 }
 
 </style>
