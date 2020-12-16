@@ -83,6 +83,9 @@ export default {
         },
         active_level: function(val) {
             this.activeLevel = val;
+        },
+        cur: function(val) {
+            this.focus = val;
         }
     },
     mounted() {

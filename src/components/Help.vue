@@ -7,17 +7,20 @@
         </div>
       </div>
     
-    <div class="help_info"></div>
+    <div class="help_info">
+      {{ help }}
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   name: "Help",
-  props: ["helpS"],
+  props: ["helpS", "help"],
   data() {
     return {
-      hSwtch: this.helpS
+      hSwtch: this.helpS,
+      helpdesk: this.help
     }
   },
   watch: {

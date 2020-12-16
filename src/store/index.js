@@ -14,6 +14,18 @@ const store = new Vuex.Store({
         nav_active: 1,
         inp: 1,
         clr_active: 1,
+        def_vals: {
+            brightness: 75,
+            contrast: 75,
+            auto_select: 'On',
+            rename_inputs: 'DP',
+            preset_modes: 'Standard',
+            input_color_format: 'RGB',
+            hue: 50,
+            saturation: 50,
+            dp: 'Off',
+            hdmi: 'Off'
+        },
         cur_vals: {
             brightness: 75,
             contrast: 75,
@@ -25,7 +37,11 @@ const store = new Vuex.Store({
             saturation: 50,
             dp: 'Off',
             hdmi: 'Off'
-        }
+        },
+        tri: 1,
+        quad: 1,
+        curmenu: 'blank',
+        pb_view: false
     },
     mutations: {
         updateNav(state, payload) {
@@ -47,6 +63,22 @@ const store = new Vuex.Store({
                 default:
                     break;
             }
+        },
+        updatePos(state,payload) {
+            switch(payload.level) {
+                case 3: 
+                    state.tri = payload.pos;
+                    console.log('3 level positionchanged', state.tri);
+                    break;
+                default:
+                    break;
+            }
+        },
+        updateFocus(state,payload) {
+            state.curmenu = payload.focus;
+        },
+        updateArrows(state,payload) {
+            state.pb_sel = payload;
         },
         setActiveBtn(state, payload) {
             console.log(`set active button, ${payload}`)

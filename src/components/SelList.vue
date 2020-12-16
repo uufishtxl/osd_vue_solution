@@ -94,11 +94,22 @@ export default {
         },
         active_level: function(val) {
             this.activeLevel = val;
+        },
+        focus: function(val) {
+            console.log(`watching focus, ${this.show}, ${this.$parent.show}, ${this.$store.state.active_level}`)
+            if (this.show && this.$parent.show && this.$store.state.active_level == 3) {
+                this.$store.commit('updatePos', {level: 3, pos: val});
+                console.log('commited position change');
+                this.$store.commit('updateFocus', {parent: this.label, focus: this.options[val].label});
+            }
         }
     },
     mounted() {
         this.updateSubNav();
         this.focus = this.cur;
+    },
+    created() {
+        this.updateSubNav();
     }
 }
 </script>

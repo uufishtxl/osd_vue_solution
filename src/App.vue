@@ -5,11 +5,11 @@
     </div>
     <div class="osd-router">
       <Connectors :connectors="connectors" />
-      <Help :helpS="helpS" v-on:switch-change="changeSwitch" />
+      <Help :help="helpinfo()" :helpS="helpS" v-on:switch-change="changeSwitch" />
     </div>
     <div class="monitor">
       <!-- <div class="desktop"></div> -->
-      <div class="bg"></div>
+      <div class="bg" :style="bgStyle"></div>
       <Menu
         :clicked="clicked"
         v-show="activeLevel >= 1 && activeLevel <= 4"
@@ -27,12 +27,14 @@
             调整B，调整第三行，其他行保持0 (0-2之间调整)
             最后一行的数字会决定滤镜的效果强烈与否
            -->
-          <feColorMatrix
-            values="    0.5 0  0  0 0
-                        0  0  0 0 0
+          <!-- 
+             values="    0 0  0  0 0
+                        0.3  0  0 0 0
                        0  0  0 0 0
                         0  0  0 0.15 0"
-          />
+
+            -->
+          <feColorMatrix :values="getModeValues(preset_modes)" />
         </filter>
       </defs>
     </svg>
@@ -74,16 +76,89 @@ export default {
       clicked: true,
       timer: setTimeout(function () {}, 10000000000),
       activeLevel: this.$store.state.active_level,
+      helpNavs: [
+        "Adjust the monitor brightness and contrast values.",
+        "Switch to another input source or configure connection parameters.",
+        "Switch to another color mode or configure other color-pertaining parameters.",
+      ],
     };
   },
+  computed: {
+    bright() {
+      return this.$store.state.cur_vals.brightness;
+    },
+    contrast() {
+      return this.$store.state.cur_vals.contrast;
+    },
+    hue() {
+      return this.$store.state.cur_vals.hue;
+    },
+    saturation() {
+      return this.$store.state.cur_vals.saturation;
+    },
+    input_color_format() {
+      return this.$store.state.cur_vals.input_color_format;
+    },
+    input_color_format_hue: {
+      get: function () {
+        return this.input_color_format == "RGB" ? 0 : 90;
+      },
+      set: function (val) {
+        console.log(val);
+      },
+    },
+    preset_modes() {
+      return this.$store.state.cur_vals.preset_modes;
+    },
+    bgStyle() {
+      return {
+        filter: ` brightness(${this.bright + 25}%) 
+                  contrast(${this.contrast + 25}%)
+                  hue-rotate(${this.input_color_format_hue + this.hue - 50}deg)
+                  saturate(${this.saturation / 50})  
+                `,
+      };
+    }
+  },
   methods: {
+    helpinfo() {
+      if (this.activeLevel == 0) {
+        return "Welcome!";
+      } else if (this.activeLevel == 1) {
+        return this.helpNavs[this.$store.state.nav_active - 1];
+      } else if (this.activeLevel == 2 && this.activeNav == 1) {
+        return "Adjust the brightness value.";
+      } else if (this.activeLevel == 3 && this.activeNav == 1) {
+        return "Adjust the contrast value.";
+      } else {
+        return "Not yet configured!";
+      }
+    },
+    getModeValues: function (val) {
+      var res = "";
+      switch (val) {
+        case "Movie":
+          res = "    0 0  0  0 0  0  0  0 0 0 0.3  0  0 0 0 0  0  0 0.15 0";
+          break;
+        case "Game":
+          res = "    0 0  0  0 0 0.3  0  0 0 0 0  0  0 0 0 0  0  0 0.15 0";
+          break;
+        default:
+          res = "    0 0  0  0 0 0  0  0 0 0 0  0  0 0 0 0  0  0 0.15 0";
+          break;
+      }
+      return res;
+    },
     handleOK() {
       if (this.timer) {
         clearTimeout(this.timer);
       }
+      // brightness 和 contrast上的OK行为
       if (this.activeLevel > 1 && this.$store.state.nav_active == 1) {
         this.activeLevel = 1;
-      } else if (this.activeLevel < 3) {
+        this.$store.commit("updatePosition", "brightness/contrast");
+        //
+      } else if (this.activeLevel < 2) {
         this.activeLevel += 1;
       }
       this.clicked = !this.clicked;
@@ -162,6 +237,24 @@ export default {
     activeLevel: function (val) {
       this.$store.commit("updateLevel", val);
     },
+    bright: function (val) {
+      console.log(val);
+    },
+    contrast: function (val) {
+      console.log(val);
+    },
+    hue: function (val) {
+      console.log(val);
+    },
+    saturation: function (val) {
+      console.log(val);
+    },
+    input_color_format: function (val) {
+      this.input_color_format_hue = val == "RGB" ? 0 : 90;
+    },
+    preset_modes: function (val) {
+      console.log(val);
+    },
   },
 };
 </script>
@@ -206,8 +299,8 @@ export default {
   left: 0;
   top: 0;
   background: inherit;
-  filter: blur(1px) contrast(100%) brightness(100%) /*url(#change)*/
-    /* hue-rotate(0deg) - input color format 可以利用这个 invert(0%) 曝光 grayscale(0%) 灰色滤镜 sepia(0%) 暖黄色调*/;
+  filter: blur(0px) url(#change) /*url(#change) contrast(100%) */;
+  /* hue-rotate(0deg) - input color format 可以利用这个 invert(0%) 曝光 grayscale(0%) 灰色滤镜 sepia(0%) 暖黄色调* brightness(100%) */
   z-index: 2;
 }
 .drag {
@@ -294,6 +387,8 @@ export default {
   height: 200px;
   border-radius: 5%;
   padding: 10px 5px;
+  color: #fff;
+  text-align: left;
 }
 
 /* Layout */

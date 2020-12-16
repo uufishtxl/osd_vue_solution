@@ -10,8 +10,8 @@
         </div>
         <div class="navs-content">
             <NavContent :nclicked="mclicked" icon="<i class='fas fa-sun'></i>" label="Brightness/Contrast" id="1" >
-                <ScaleBar slot="subleft" label="Brightness" min="0" max="100" unit="%" icon="<i class='fas fa-sun'></i>"  slevel="2" />
-                <ScaleBar label="Contrast" min="0" max="100" unit="%" icon="<i class='fas fa-adjust'></i>"  slevel="3" />
+                <ScaleBar :hasChild="false" slot="subleft" label="Brightness" min="0" max="100" unit="%" icon="<i class='fas fa-sun'></i>"  slevel="2" />
+                <ScaleBar :hasChild="false" label="Contrast" min="0" max="100" unit="%" icon="<i class='fas fa-adjust'></i>"  slevel="3" />
             </NavContent>
             <NavContent :nclicked="mclicked" :haspre="true" icon="<i class='fas fa-paperclip'></i>" label="Input Source" id="2"  :simpSels="inputSSels">
                 <SelList :hasChild="false" :options="auto_select_o" label="Auto Select" id="3" />
@@ -22,10 +22,10 @@
                 </SelList>
             </NavContent>
             <NavContent :nclicked="mclicked" :haspre="false" icon="<i class='fas fa-palette'></i>" label="Color" id="3"  >
-                <SelList :hasChild="false" :options="preset_modes_o" label="Preset Modes" id="1" />
-                <SelList :hasChild="false" :options="input_color_format_o" label="Input Color Format" id="2" />
-                <ScaleBar :hasChild="false"  label="Hue" min="0" max="100" unit="%"  qid="3" slevel="3" />
-                <ScaleBar :hasChild="false"  label="Saturation" min="0" max="100" unit="%" qid="4" slevel="3" />
+                <SelList :hasChild="true" :options="preset_modes_o" label="Preset Modes" id="1" />
+                <SelList :hasChild="true" :options="input_color_format_o" label="Input Color Format" id="2" />
+                <ScaleBar :hasChild="true"  label="Hue" min="0" max="100" unit="%"  qid="3" slevel="3" />
+                <ScaleBar :hasChild="true"  label="Saturation" min="0" max="100" unit="%" qid="4" slevel="3" />
             </NavContent>
             <NavContent icon="<i class='fas fa-tv'></i>" label="Display" id="4" />
             <NavContent icon="<i class='fas fa-columns'></i>" label="PIP/PBP" id="5" />

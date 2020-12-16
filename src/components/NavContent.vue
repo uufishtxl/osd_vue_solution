@@ -69,6 +69,17 @@ export default {
     },
   },
   methods: {
+    sortNavs: function (obja, objb) {
+      var sa = Number(obja.id);
+      var sb = Number(objb.id);
+      if (sa < sb) {
+        return -1;
+      } else if (sa > sb) {
+        return 1;
+      } else {
+        return 0;
+      }
+    },
     subCls: function (item) {
       return [
         {
@@ -107,7 +118,7 @@ export default {
         _this.subNavs.push({
           label: sub.label,
           id: sub.id || index,
-          hasChild: sub.extend || false,
+          hasChild: sub.extend || false
         });
         if (!sub.id) sub.id = index;
         // if (index === 0) {
@@ -121,14 +132,16 @@ export default {
         label: `Reset ${this.label}`,
         id: this.subNavs.length + 1,
         hasChild: false,
+        isReset: true
       });
+      this.subNavs.sort(this.sortNavs);
       this.updateSubStatus();
     },
     updateSubStatus() {
       var _this = this;
       console.log(`update sub status, ${this.currentValue}`);
       this.getSubNavs().forEach(function (sub) {
-        return (sub.show = Number(sub.id) === _this.$store.getters.curSub);
+        return (sub.show = Number(sub.id) === Number(_this.currentValue));
       });
       if (this.$store.state.nav_active == 1) {
         this.getSubNavs().forEach(function (sub) {
@@ -149,8 +162,18 @@ export default {
       children = children.filter(function (item) {
         return item.show;
       });
-      var child =
-        this.label == "Brightness/Contrast" ? children[1] : children[0];
+      //
+      var child;
+      if (this.label != "Brightness/Contrast") {
+        child = children[0];
+      } else {
+        children = children.filter(function (item) {
+          return (item.label == "Contrast");
+        });
+        child = children[0];
+      }
+      // var child =
+      //   this.label == "Brightness/Contrast" ? children[1] : children[0];
       return child;
     },
     getValidGrandChild() {
@@ -182,7 +205,7 @@ export default {
           this.updateSubStatus();
         }
       } else if (this.show && this.activeLevel == 3) {
-        console.log("entered here");
+        console.log("entered here activelevel == 3");
         var child = this.getValidChild();
         if (child.$options.name == "ScaleBar") {
           var val = child.cur_val;
@@ -290,6 +313,7 @@ export default {
     },
     ok() {
       console.log("ok clicked");
+      this.updateSubStatus();
       /*
             -   处于3级菜单
                 查看有没有children：
@@ -308,6 +332,37 @@ export default {
           return item.show;
         });
         var child = children[0]; //找到显示的那个子组件
+        if (level == 2 && this.$store.state.nav_active != 1) {
+          var cur = this.subNavs[this.currentValue - 1];
+          // 当前选中的选项的hasChild属性为true ++level
+          // 当前选中的选项hasChild属性为false，对label做个别处理
+          // 当前选中的选项为Reset选项
+          if (cur.hasChild) {
+            ++level;
+            this.$store.commit("updateLevel", level);
+          } else if (cur.isReset) {
+            console.log('reset handling');
+            /*
+            找到所有children的options - > 
+            */ 
+            this.subNavs.forEach(function(item) {
+              if (_this.$store.state.cur_vals[_this.formatTxt(item.label)]) {
+                _this.$store.state.cur_vals[_this.formatTxt(item.label)] = _this.$store.state.def_vals[_this.formatTxt(item.label)];
+              }
+              var grandchildren = item.$children;
+              if (grandchildren) {
+                grandchildren.forEach(function(grandchild) {
+                  if (_this.$store.state.cur_vals[_this.formatTxt(grandchild.label)]) {
+                    _this.$store.state.cur_vals[_this.formatTxt(grandchild.label)] = _this.$store.state.def_vals[_this.formatTxt(grandchild.label)];
+
+                  }
+                })
+              }
+            })
+          } else {
+            console.log('special handling');
+          }
+        }
         if (level == 3 && this.$store.state.nav_active != 1) {
           console.log(
             `has child? ${child.extend}, ${child.label}, ${child.$options.name}`
@@ -373,6 +428,7 @@ export default {
   mounted() {
     this.updateNav();
     // this.subNavs = this.subNavs.concat(this.simpSels);
+    this.currentValue = this.$store.getters.curSub;
   },
 };
 </script>
